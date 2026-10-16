@@ -1,4 +1,4 @@
-# V4: ontology-agnostic, retrieval-augmented NL-to-SPARQL
+# nl2sparql: natural-language querying of knowledge graphs with local LLMs
 
 Code, analysis scripts and per-question results for the paper
 *Privacy-Preserving Natural-Language Querying of Knowledge Graphs with Local Large Language
