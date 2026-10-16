@@ -1,0 +1,5 @@
+label,value,questions_scored,questions_total,qwen2.5-coder:7b EA,qwen2.5-coder:32b EA,qwen3:8b EA,qwen3-coder:30b EA,llama3.1:8b EA,deepseek-r1:32b EA,note
+all,all,1042,1042,43.2,72.6,60.5,64.1,27.3,63.4,simple: P<=2 and O<=1; complex: P>=5 or O>=3
+difficulty_level,simple,242,242,56.6,81.8,70.2,78.9,43.4,77.3,
+difficulty_level,medium,435,435,47.6,78.4,70.1,70.8,34.5,73.6,
+difficulty_level,complex,365,365,29.0,59.7,42.5,46.3,7.9,42.2,

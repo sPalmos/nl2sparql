@@ -1,0 +1,55 @@
+System Role:
+{{ system_role }}
+
+Original question:
+{{ original_question }}
+
+Relevant Ontology Chunks:
+{% if retrieved_context %}
+{% for item in retrieved_context %}
+Chunk {{ item.rank or loop.index }}:
+"""
+{{ item.text or "" }}
+"""
+{% endfor %}
+{% else %}
+No retrieved ontology context was available.
+{% endif %}
+
+Matching Instance Candidates:
+{% if retrieved_abox_context %}
+These are examples from the data, not the full answer set. Use a candidate URI only when it clearly matches a resource explicitly named in the question. Do not use candidate URIs to limit the variable being asked for in broad list/count/comparison questions. If no candidate clearly matches a named resource, use general graph patterns and the ontology name/label rules. If a property links to another resource/class, do not compare that resource variable to string literals; bind the resource and compare its label/name value instead.
+{% for item in retrieved_abox_context %}
+Candidate {{ item.rank or loop.index }}:
+"""
+{{ item.text or "" }}
+"""
+{% endfor %}
+{% else %}
+No matching instance candidates were retrieved.
+{% endif %}
+
+Failed query:
+{{ failed_query }}
+
+Validation/execution errors:
+{% if validation_errors %}
+{% for error in validation_errors %}
+- {{ error }}
+{% endfor %}
+{% else %}
+- No explicit error message was provided.
+{% endif %}
+
+Available Prefix Declarations:
+{% if prefix_declarations %}
+{% for declaration in prefix_declarations %}
+{{ declaration }}
+{% endfor %}
+{% else %}
+No prefix declarations were available.
+{% endif %}
+
+{{ prompt_rules }}
+
+{{ output_format_instructions }}

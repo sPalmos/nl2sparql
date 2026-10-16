@@ -1,0 +1,55 @@
+System Role:
+{{ system_role }}
+
+Relevant Ontology Chunks:
+{% if ontology_name %}Ontology label, not a SPARQL prefix: {{ ontology_name }}
+{% endif %}{% if dataset_name %}Dataset label, not a SPARQL prefix: {{ dataset_name }}
+{% endif %}{% if retrieved_context %}
+{% for item in retrieved_context %}
+Chunk {{ item.rank or loop.index }}:
+"""
+{{ item.text or "" }}
+"""
+{% endfor %}
+{% else %}
+No retrieved ontology context was available.
+{% endif %}
+
+Matching Instance Candidates:
+{% if retrieved_abox_context %}
+{% for item in retrieved_abox_context %}
+Candidate {{ item.rank or loop.index }}:
+"""
+{{ item.text or "" }}
+"""
+{% endfor %}
+{% else %}
+No matching instance candidates were retrieved.
+{% endif %}
+
+Auto-Generated Prefix Declarations:
+{% if prefix_declarations %}
+{% for declaration in prefix_declarations %}
+{{ declaration }}
+{% endfor %}
+{% else %}
+No prefix declarations were available.
+{% endif %}
+
+{{ prompt_rules }}
+
+Optional Few-Shot Examples:
+{% if few_shot_examples %}
+{% for example in few_shot_examples %}
+Example {{ loop.index }} Question: {{ example.question }}
+Example {{ loop.index }} SPARQL:
+{{ example.sparql }}
+{% endfor %}
+{% else %}
+No few-shot examples provided.
+{% endif %}
+
+{{ output_format_instructions }}
+
+User Question:
+{{ user_question }}

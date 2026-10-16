@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.env
+# local data, built packages and run outputs (see README: Datasets)
+resources/
+ontology_packages/
+evaluation/datasets/
+logs/
+downloads/
+trimmed_sources/

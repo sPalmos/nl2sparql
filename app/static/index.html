@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ontology Loader</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3efe7;
+      --panel: #fffdf8;
+      --text: #1d2730;
+      --muted: #5b6770;
+      --border: #d8cec0;
+      --accent: #14532d;
+      --accent-soft: #e7f5eb;
+      --danger: #8a1c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(20, 83, 45, 0.10), transparent 28%),
+        linear-gradient(180deg, #f7f2e9 0%, var(--bg) 100%);
+    }
+
+    main {
+      width: min(960px, calc(100% - 32px));
+      margin: 40px auto;
+      padding: 28px;
+      background: rgba(255, 253, 248, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(45, 37, 25, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    select {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font: inherit;
+    }
+
+    input[type="file"] {
+      border-style: dashed;
+    }
+
+    button {
+      width: fit-content;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #status {
+      min-height: 24px;
+      margin-bottom: 20px;
+      color: var(--muted);
+    }
+
+    #status.error {
+      color: var(--danger);
+    }
+
+    .panel {
+      margin-top: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 240px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font: 0.95rem/1.45 Consolas, "Courier New", monospace;
+      resize: vertical;
+    }
+
+    #query-result {
+      min-height: 560px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Ontology Loader</h1>
+    <p>Upload one ontology file, then inspect the current load log and runtime metadata.</p>
+
+    <form id="upload-form">
+      <input id="file-input" name="file" type="file" accept=".ttl,.owl,.rdf" required>
+      <button id="upload-button" type="submit">Upload ontology</button>
+    </form>
+
+    <div id="status">Waiting for upload.</div>
+
+    <section class="panel">
+      <h2>Load Log</h2>
+      <textarea id="load-log" readonly placeholder="load.log will appear here"></textarea>
+    </section>
+
+    <section class="panel">
+      <h2>Metadata</h2>
+      <textarea id="metadata" readonly placeholder="metadata.json will appear here"></textarea>
+    </section>
+
+    <form id="query-form">
+      <input id="question-input" name="question" type="text" placeholder="Ask a question about the loaded ontology" required>
+      <button id="query-button" type="submit">Run query</button>
+    </form>
+
+    <section class="panel">
+      <h2>Query Pipeline JSON</h2>
+      <textarea id="query-result" readonly placeholder="query_pipeline_log.json will appear here after a query"></textarea>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("upload-form");
+    const queryForm = document.getElementById("query-form");
+    const fileInput = document.getElementById("file-input");
+    const questionInput = document.getElementById("question-input");
+    const uploadButton = document.getElementById("upload-button");
+    const queryButton = document.getElementById("query-button");
+    const statusEl = document.getElementById("status");
+    const queryResultEl = document.getElementById("query-result");
+    const loadLogEl = document.getElementById("load-log");
+    const metadataEl = document.getElementById("metadata");
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.className = isError ? "error" : "";
+    }
+
+    async function readText(url, fallback) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (response.status === 404) {
+        return fallback;
+      }
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}`);
+      }
+      return response.text();
+    }
+
+    async function refreshRuntimeFiles() {
+      try {
+        const [loadLog, metadata] = await Promise.all([
+          readText("/load-log", "No load log available yet."),
+          readText("/metadata", "No metadata available yet.")
+        ]);
+        loadLogEl.value = loadLog;
+        metadataEl.value = metadata;
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function latestQueryLogEntry(logText, fallbackPayload) {
+      try {
+        const log = JSON.parse(logText);
+        if (Array.isArray(log) && log.length > 0) {
+          return JSON.stringify(log[log.length - 1], null, 2);
+        }
+        if (log && typeof log === "object" && !Array.isArray(log)) {
+          return JSON.stringify(log, null, 2);
+        }
+      } catch (error) {
+        return JSON.stringify(fallbackPayload, null, 2);
+      }
+      return JSON.stringify(fallbackPayload, null, 2);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) {
+        setStatus("Select a .ttl, .owl, or .rdf file first.", true);
+        return;
+      }
+
+      uploadButton.disabled = true;
+      setStatus(`Uploading ${file.name} ...`);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/ontology/load", {
+          method: "POST",
+          body: formData
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || "Upload failed");
+        }
+
+        await refreshRuntimeFiles();
+        setStatus(`Loaded dataset ${payload.dataset_name} at ${payload.endpoint}`);
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        uploadButton.disabled = false;
+      }
+    });
+
+    queryForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = questionInput.value.trim();
+      if (!question) {
+        setStatus("Enter a question first.", true);
+        return;
+      }
+
+      queryButton.disabled = true;
+      queryResultEl.value = "";
+      setStatus("Running query pipeline ...");
+
+      try {
+        const response = await fetch("/query", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          queryResultEl.value = JSON.stringify(payload, null, 2);
+          throw new Error(payload.detail || "Query failed");
+        }
+        const queryLogText = await readText(
+          "/query-pipeline-log",
+          JSON.stringify(payload, null, 2)
+        );
+        queryResultEl.value = latestQueryLogEntry(queryLogText, payload);
+        setStatus(`Query pipeline finished with status: ${payload.status}`);
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        queryButton.disabled = false;
+      }
+    });
+
+    refreshRuntimeFiles();
+  </script>
+</body>
+</html>

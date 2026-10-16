@@ -1,0 +1,5 @@
+system,ontologies,questions_pooled,mean_ea_lenient,mean_ea_strict,pooled_ea_lenient,pooled_ea_strict,mean_f1_lenient,mean_ea_first_attempt,correction_gain_pts,mean_latency_ms
+api:gemini-3.1-flash-lite (mean of 2 runs),19,1002,74.2,72.2,71.1,69.3,0.769,67.7,6.5,2193
+api:gemini-3.1-flash-lite run 1,19,1002,74.2,72.2,71.1,69.3,0.769,68.0,6.2,2260
+api:gemini-3.1-flash-lite run 2,19,1002,74.3,72.2,71.2,69.3,0.77,67.5,6.8,2126
+qwen2.5-coder:32b,19,1002,76.8,73.7,72.6,69.3,0.795,71.1,5.7,7060
