@@ -1,15 +1,15 @@
-"""Run the V4 evaluation matrix: ontologies x models, one repetition each.
+"""Run the model matrix: ontologies x models, one repetition each.
 
 For every ontology it activates the package once, then runs each model in turn.
-Results are appended to results_v4_runs.csv immediately after each run, so an
+Results are appended to output/results_model_matrix_runs.csv immediately after each run, so an
 interrupted sweep loses at most the run in flight. A final matrix
-(results_v4_matrix.csv) is written at the end and also printed.
+(output/results_model_matrix.csv) is written at the end and also printed.
 
 Usage:
-    python run_v4_matrix.py                     # everything
-    python run_v4_matrix.py --only bestiary spider-world-1
-    python run_v4_matrix.py --models qwen2.5-coder:32b
-    python run_v4_matrix.py --dry-run           # print commands, run nothing
+    python scripts/run_model_matrix.py                     # everything
+    python scripts/run_model_matrix.py --only bestiary spider-world-1
+    python scripts/run_model_matrix.py --models qwen2.5-coder:32b
+    python scripts/run_model_matrix.py --dry-run           # print commands, run nothing
 """
 
 from __future__ import annotations
@@ -24,12 +24,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 PACKAGES_DIR = ROOT / "ontology_packages"
 DATASETS_DIR = ROOT / "evaluation" / "datasets"
 
-RUNS_CSV = ROOT / "results_v4_runs.csv"
-MATRIX_CSV = ROOT / "results_v4_matrix.csv"
+RUNS_CSV = ROOT / "output" / "results_model_matrix_runs.csv"
+MATRIX_CSV = ROOT / "output" / "results_model_matrix.csv"
 
 MODELS = [
     # previous generation (2024) - kept as the reference point
@@ -43,8 +43,8 @@ MODELS = [
 ]
 
 # ontology key -> (package dir prefix, dataset filename)
-# Dataset names are guesses based on the V3 layout; the script verifies each one
-# exists before running and reports any it cannot find.
+# The script checks that each package and dataset exists before running and
+# reports any it cannot find.
 ONTOLOGIES = {
     "bestiary":                           ("bestiary",                           "bestiary_sandro_eval_dataset.json"),
     "ck25":                               ("ck25",                               "ck25_text2sparql_combined_eval_dataset.json"),
@@ -155,6 +155,7 @@ def parse_report(results_path: Path) -> dict:
 
 
 def append_row(row: dict) -> None:
+    RUNS_CSV.parent.mkdir(parents=True, exist_ok=True)
     new_file = not RUNS_CSV.exists()
     with RUNS_CSV.open("a", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=CSV_FIELDS)

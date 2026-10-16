@@ -10,7 +10,7 @@ Run selection (same rules as build_headline_tables.py)
   - local model: the newest run per ontology (the main-table cell)
   - empty-gold questions excluded; ontologies with < 5 scored questions excluded
 
-Outputs (analysis/)
+Outputs (output/tables/)
   table_api_per_ontology.csv   EA per ontology: run 1, run 2, mean, local model
   table_api_summary.csv        macro / pooled EA, F1, first attempt, correction, latency
   table_api_significance.csv   paired tests: local vs each API run, run 1 vs run 2
@@ -22,8 +22,8 @@ Statistics
   as the number of questions whose correctness flips between the two runs.
 
 Usage (repository root)
-    python api_comparison.py
-    python api_comparison.py --api-model api:gemini-3.1-flash-lite --local-model qwen2.5-coder:32b
+    python analysis/api_comparison.py
+    python analysis/api_comparison.py --api-model api:gemini-3.1-flash-lite --local-model qwen2.5-coder:32b
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ import statistics
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from build_headline_tables import EXCLUDED_ONTOLOGIES, matches_reference, ontology_key  # noqa: E402
@@ -90,8 +90,8 @@ def ea(run: dict, rule: str, ids: list[str], first_only: bool = False) -> float:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=".")
-    parser.add_argument("--out-dir", default="analysis")
+    parser.add_argument("--root", default=str(ROOT))
+    parser.add_argument("--out-dir", default=str(ROOT / "output" / "tables"))
     parser.add_argument("--api-model", default="api:gemini-3.1-flash-lite")
     parser.add_argument("--local-model", default="qwen2.5-coder:32b")
     parser.add_argument("--replicates", type=int, default=10000)

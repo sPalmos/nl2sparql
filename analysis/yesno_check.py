@@ -4,7 +4,7 @@ Same question set and runs as the main table (scored, non-empty gold, 20
 ontologies, newest reference run per ontology x model). Prints the number of
 boolean questions per ontology and the pooled lenient EA of each model on them.
 
-Usage (repository root):  python yesno_check.py
+Usage (repository root):  python analysis/yesno_check.py
 """
 
 import json
@@ -12,7 +12,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from label_breakdown import dataset_labels  # noqa: E402

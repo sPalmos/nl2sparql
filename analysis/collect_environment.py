@@ -1,9 +1,9 @@
 """Collect the software and hardware facts the paper's setup section needs.
 
 Run from the repository root while Fuseki and the Ollama server are up:
-    python collect_environment.py
+    python analysis/collect_environment.py
 
-Writes analysis/environment.json and prints a summary. It only reads; nothing
+Writes output/environment.json and prints a summary. It only reads; nothing
 is changed on either server.
 
 GPU details are read on the GPU server itself, so also run this there once:
@@ -18,7 +18,8 @@ import sys
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 MODELS = ["qwen2.5-coder:7b", "qwen2.5-coder:32b", "qwen3:8b",
           "qwen3-coder:30b", "llama3.1:8b", "deepseek-r1:32b"]
@@ -107,8 +108,8 @@ def main() -> None:
     except Exception:                                             # noqa: BLE001
         pass
 
-    out = Path("analysis")
-    out.mkdir(exist_ok=True)
+    out = ROOT / "output"
+    out.mkdir(parents=True, exist_ok=True)
     (out / "environment.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
     print(f"\nwrote {out / 'environment.json'}")

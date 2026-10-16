@@ -3,7 +3,7 @@
 Two stages.
 
 STAGE 1 (automatic, all models)
-    python error_analysis.py
+    python analysis/error_analysis.py
 
     Uses exactly the runs that fill the main table (same selection rule as
     build_headline_tables.py: newest reference-configuration run per
@@ -26,7 +26,7 @@ STAGE 1 (automatic, all models)
         missing_gold_class,
         missing_gold_literal, column_count_diff
 
-    Outputs (analysis/)
+    Outputs (output/tables/)
       error_cases_all.csv              every failure, all models, with both queries
       table_error_categories.csv       outcome categories per model (counts and %)
       table_error_flags.csv            structural flags per model (% of failures)
@@ -34,9 +34,9 @@ STAGE 1 (automatic, all models)
                                        failures with empty columns for manual labels
 
 STAGE 2 (after manual annotation)
-    python error_analysis.py --summarize analysis/error_sample_for_annotation.csv
+    python analysis/error_analysis.py --summarize output/tables/error_sample_for_annotation.csv
 
-    Reads the annotated sample and writes analysis/table_error_taxonomy.csv
+    Reads the annotated sample and writes output/tables/table_error_taxonomy.csv
     (root-cause counts, %, and 95% Wilson intervals).
 
 The manual root-cause labels are defined in ERROR_ANNOTATION_GUIDE.md.
@@ -54,7 +54,8 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from build_headline_tables import MODEL_ORDER, matches_reference, ontology_key  # noqa: E402
 
@@ -385,8 +386,8 @@ def stage_two(annotated: Path, out_dir: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=".")
-    parser.add_argument("--out-dir", default="analysis")
+    parser.add_argument("--root", default=str(ROOT))
+    parser.add_argument("--out-dir", default=str(ROOT / "output" / "tables"))
     parser.add_argument("--sample", type=int, default=80, help="annotation sample size")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--summarize", help="annotated sample CSV (stage 2)")

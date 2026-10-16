@@ -24,8 +24,8 @@ Outputs
   table_excluded_runs.csv  runs outside the reference configuration
 
 Usage
-    python build_headline_tables.py --root . --out-dir analysis
-    python build_headline_tables.py --primary strict
+    python analysis/build_headline_tables.py
+    python analysis/build_headline_tables.py --primary strict
 """
 
 from __future__ import annotations
@@ -38,7 +38,8 @@ import statistics
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from evaluation.answer_comparison import normalize_result_set
 from evaluation.experiment_runner import answer_aliases_from_package, prefix_map_from_package
@@ -217,8 +218,8 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=".")
-    parser.add_argument("--out-dir", default="analysis")
+    parser.add_argument("--root", default=str(ROOT))
+    parser.add_argument("--out-dir", default=str(ROOT / "output" / "tables"))
     parser.add_argument("--primary", choices=["lenient", "strict"], default="lenient",
                         help="which rule fills the main matrix (default: lenient)")
     args = parser.parse_args()

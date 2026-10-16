@@ -8,10 +8,10 @@ Sources (clone them into ./downloads, or pass --downloads):
 (`-c core.autocrlf=false` keeps the files byte-identical to the release on Windows.)
 
 Steps
-    python prepare_datasets.py build    graphs + question files (no Fuseki needed)
-    powershell -File onboard_all.ps1    build the packages and load them into Fuseki
-    python prepare_datasets.py gold     fill gold_answers by running every gold query on Fuseki
-    python prepare_datasets.py check    compare every produced file with results/source_sha256.csv
+    python scripts/prepare_datasets.py build    graphs + question files (no Fuseki needed)
+    powershell -File scripts/onboard_all.ps1    build the packages and load them into Fuseki
+    python scripts/prepare_datasets.py gold     fill gold_answers by running every gold query on Fuseki
+    python scripts/prepare_datasets.py check    compare every produced file with results/source_sha256.csv
 
 What `build` writes (under --out, default the repository root)
     resources/knowledge_graphs/bestiary_sandro.rdf             copy of the release file
@@ -38,7 +38,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 LABELS = ROOT / "evaluation" / "question_labels.csv"
 FUSEKI = "http://127.0.0.1:3030"
 
@@ -263,9 +263,9 @@ def check(out: Path, hashes: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("step", choices=["build", "gold", "check"])
-    parser.add_argument("--downloads", default="downloads", help="folder holding the two cloned repositories")
-    parser.add_argument("--out", default=".", help="root folder to write into (default: repository root)")
-    parser.add_argument("--hashes", default="results/source_sha256.csv")
+    parser.add_argument("--downloads", default=str(ROOT / "downloads"), help="folder holding the two cloned repositories")
+    parser.add_argument("--out", default=str(ROOT), help="root folder to write into (default: repository root)")
+    parser.add_argument("--hashes", default=str(ROOT / "results" / "source_sha256.csv"))
     args = parser.parse_args()
     out = Path(args.out).resolve()
     if args.step == "build":

@@ -18,8 +18,8 @@ explicit OWL declarations are counted the same way. A predicate used with both
 IRI and literal objects is counted in both columns (reported separately).
 
 Usage (repository root):
-    python ontology_stats.py
-Writes analysis/table_ontology_stats.csv.
+    python analysis/ontology_stats.py
+Writes output/tables/table_ontology_stats.csv.
 """
 
 from __future__ import annotations
@@ -29,7 +29,8 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from rdflib import Graph, Literal, URIRef                          # noqa: E402
 from rdflib.namespace import OWL, RDF, RDFS                        # noqa: E402
@@ -93,7 +94,7 @@ def stats(graph: Graph) -> dict:
 
 
 def main() -> None:
-    root = Path(".").resolve()
+    root = ROOT
     chosen: dict[str, tuple[str, Path]] = {}
     for path in sorted(root.rglob("results.json")):
         try:
@@ -132,8 +133,8 @@ def main() -> None:
     fields = ["ontology", "triples", "classes", "object_properties", "datatype_properties",
               "properties_both", "instances", "questions", "questions_scored",
               "package", "graph_file", "note"]
-    out = Path("analysis")
-    out.mkdir(exist_ok=True)
+    out = ROOT / "output" / "tables"
+    out.mkdir(parents=True, exist_ok=True)
     with (out / "table_ontology_stats.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()

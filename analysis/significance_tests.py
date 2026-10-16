@@ -21,13 +21,13 @@ lenient correctness is the evaluator's stored exact_match, and strict
 correctness (with --strict) re-checks the lenient-correct questions with exact
 row-set equality, aliases kept.
 
-Usage (from the repository root, next to results_ablation.csv)
-    python significance_tests.py
-    python significance_tests.py --strict
-    python significance_tests.py --skip spider-dog-kennels      # preview only
-    python significance_tests.py --strict --substitute S4:spider-world-1=det_full_a
+Usage (from the repository root; the ablation runs are listed in output/results_ablation.csv)
+    python analysis/significance_tests.py
+    python analysis/significance_tests.py --strict
+    python analysis/significance_tests.py --skip spider-dog-kennels      # preview only
+    python analysis/significance_tests.py --strict --substitute S4:spider-world-1=det_full_a
 
-Outputs (in --out-dir, default analysis/)
+Outputs (in --out-dir, default output/tables/)
     table_ablation_significance.csv     one row per comparison and rule
     table_ablation_per_ontology.csv     EA per configuration and ontology
 """
@@ -42,7 +42,7 @@ import random
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 REFERENCE = "S4"
@@ -198,8 +198,8 @@ def bootstrap_macro_ci(pairs_by_ontology: dict[str, list[tuple[int, int]]],
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--csv", default="results_ablation.csv")
-    parser.add_argument("--out-dir", default="analysis")
+    parser.add_argument("--csv", default=str(ROOT / "output" / "results_ablation.csv"))
+    parser.add_argument("--out-dir", default=str(ROOT / "output" / "tables"))
     parser.add_argument("--strict", action="store_true",
                         help="also test under the strict rule (needs the evaluation package)")
     parser.add_argument("--skip", nargs="*", default=[], help="ontologies to leave out")

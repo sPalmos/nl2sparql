@@ -1,8 +1,9 @@
-# Onboard every ontology used in the paper. Run from the repository root:
-#     powershell -File onboard_all.ps1
-# Expects the graphs written by `python prepare_datasets.py build` (see README: Datasets):
+# Onboard every ontology used in the paper. Run from anywhere:
+#     powershell -File scripts\onboard_all.ps1
+# Expects the graphs written by `python scripts\prepare_datasets.py build` (see README: Datasets):
 # resources\knowledge_graphs\ and the whitespace-trimmed CK25 graph trimmed_sources\ck25.ttl.
 
+Set-Location (Split-Path -Parent $PSScriptRoot)
 $kg = "resources\knowledge_graphs"
 $sp = "$kg\spider_correct"
 

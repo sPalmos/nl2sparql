@@ -15,17 +15,19 @@ unchanged for every ontology.
 
 | Path | Contents |
 |---|---|
+| `onboard.py`, `activate.py`, `query.py`, `evaluate.py` | Command-line tools: build a package from an ontology, load it into Fuseki, ask one question, evaluate one dataset |
 | `app/` | The framework: onboarding, retrieval, prompt rendering, validation, execution, correction |
-| `evaluation/` | Dataset schema, evaluation runner, answer comparison and metrics |
-| `onboard.py`, `activate.py`, `query.py`, `evaluate.py` | Command-line entry points |
-| `prepare_datasets.py`, `evaluation/question_labels.csv` | Rebuild the knowledge graphs and evaluation datasets from the public releases (see Datasets) |
-| `run_v4_matrix.py`, `run_ablations.py` | The model matrix and the ablation study of the paper |
-| `build_headline_tables.py`, `significance_tests.py`, `api_comparison.py`, `error_analysis.py`, `difficulty_levels.py`, ... | The analysis scripts that produce every table in the paper |
+| `evaluation/` | Dataset schema, evaluation runner, answer comparison, metrics, and `question_labels.csv` |
+| `scripts/` | `prepare_datasets.py` (rebuild the datasets), `onboard_all.ps1` (onboard every ontology), `run_model_matrix.py` and `run_ablations.py` (the paper's experiments) |
+| `analysis/` | The scripts that produce every table in the paper; `run_all.ps1` runs them all and compares the result with `results/tables/` |
 | `results/tables/` | The paper's tables (CSV) |
 | `results/paper_outcomes.csv` | Every per-question outcome behind the tables (see below) |
 | `results/source_sha256.csv` | SHA-256 of the knowledge-graph sources and converted datasets we used |
 | `infra/docker/compose.yml` | Apache Jena Fuseki |
 | `docs/architecture/` | Design notes |
+
+Everything a re-run produces goes to `output/` (not tracked by git): the run logs of the
+experiments in `output/`, the regenerated tables in `output/tables/`.
 
 ## Requirements
 
@@ -61,10 +63,10 @@ git -C downloads/LLMs-for-SPARQL checkout ddfe9c3
 git clone -c core.autocrlf=false https://github.com/eccenca/ck25-dataset downloads/ck25-dataset
 git -C downloads/ck25-dataset checkout v1.1.0
 
-python prepare_datasets.py build     # knowledge graphs + question files (no Fuseki needed)
-powershell -File onboard_all.ps1     # packages, loaded into Fuseki (see Running)
-python prepare_datasets.py gold      # gold answers: every gold query run on its graph
-python prepare_datasets.py check     # expected: 41 of 41 files byte-identical
+python scripts/prepare_datasets.py build    # knowledge graphs + question files (no Fuseki needed)
+powershell -File scripts/onboard_all.ps1    # packages, loaded into Fuseki (see Running)
+python scripts/prepare_datasets.py gold     # gold answers: every gold query run on its graph
+python scripts/prepare_datasets.py check    # expected: 41 of 41 files byte-identical
 ```
 
 What `build` does:
@@ -91,20 +93,22 @@ All commands run from the repository root.
 2. **LLM endpoint.** Set `llm_api_url` in `app/core/config.py` to your Ollama endpoint
    (default `http://127.0.0.1:11434/api/generate`) and pull the models, e.g.
    `ollama pull qwen2.5-coder:32b`.
-3. **Onboarding.** `powershell -File onboard_all.ps1` onboards every ontology of the paper
+3. **Onboarding.** `powershell -File scripts/onboard_all.ps1` onboards every ontology of the paper
    (one: `python onboard.py --ontology <file> --output ontology_packages --name <name>`).
    Each run creates `ontology_packages/<name>-<timestamp>/` with the ontology context, the
    TBox indexes (class-based, property-based, composite) and the ABox index, and loads the
    graph into Fuseki.
-4. **Model matrix.** `python run_v4_matrix.py` runs every ontology with the six models in the
+4. **Model matrix.** `python scripts/run_model_matrix.py` runs every ontology with the six models in the
    reference configuration (class-based TBox chunks, k = 5; ABox retrieval, k = 5; at most
    3 attempts). Options: `--only <ontologies>`, `--models <models>`, `--dry-run`.
+   Each run is logged in `output/results_model_matrix_runs.csv`.
    The API comparison used `--models api:gemini-3.1-flash-lite` with the environment
    variables above.
-5. **Ablations.** `python run_ablations.py --list` shows the named configurations (ladder
+5. **Ablations.** `python scripts/run_ablations.py --list` shows the named configurations (ladder
    S0–S4, leave-one-out, retrieval variants, full-schema baseline, determinism repeats);
    run them with `--family ladder`, `--configs S0 S4 loo_no_abox`, etc. The paper's
-   ablation subset also includes eNOVATION, which is not public.
+   ablation subset also includes eNOVATION, which is not public. Each run is logged in
+   `output/results_ablation.csv`.
 6. **One question.** `python activate.py --package ontology_packages/<package>`, then
    `python query.py --question "..."`.
 7. **One dataset.** `python evaluate.py --dataset <dataset.json> --package <package> --model <model> --chunking class_based --k 5 --abox-rag --abox-k 5`.
@@ -113,18 +117,17 @@ All commands run from the repository root.
 
 ## Reproducing the tables
 
-With the packages built and the runs completed, from the repository root:
+With the packages built and the runs completed:
 
 ```
-python build_headline_tables.py --root . --out-dir analysis
-python significance_tests.py --strict --substitute S4:spider-world-1=det_full_a
-python api_comparison.py
-python error_analysis.py
-python difficulty_levels.py --ea
-python ontology_stats.py
-python schema_size.py
-python prompt_length.py
+powershell -ExecutionPolicy Bypass -File analysis/run_all.ps1
 ```
+
+It runs every analysis script (`build_headline_tables.py`, `significance_tests.py`,
+`api_comparison.py`, `error_analysis.py`, `difficulty_levels.py`, `ontology_stats.py`,
+`schema_size.py`, `prompt_length.py`), writes the tables to `output/tables/`, and compares
+each one with the paper's copy in `results/tables/`. Each script can also be run on its own,
+e.g. `python analysis/build_headline_tables.py`.
 
 ## Per-question outcomes
 

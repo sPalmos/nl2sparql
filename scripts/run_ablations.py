@@ -12,15 +12,15 @@ Two families of configuration are declared:
   loo         leave-one-out from the full system. Answers "what is each
               component worth inside the finished system?"
 
-Results are appended to results_ablation.csv after every run, so an interrupted
+Results are appended to output/results_ablation.csv after every run, so an interrupted
 sweep loses at most the run in flight.
 
 Usage
-    python run_ablations.py --list
-    python run_ablations.py --dry-run
-    python run_ablations.py --family ladder
-    python run_ablations.py --configs S0 S4 loo_no_abox
-    python run_ablations.py --summary            # rebuild tables from the CSV
+    python scripts/run_ablations.py --list
+    python scripts/run_ablations.py --dry-run
+    python scripts/run_ablations.py --family ladder
+    python scripts/run_ablations.py --configs S0 S4 loo_no_abox
+    python scripts/run_ablations.py --summary            # rebuild tables from the CSV
 """
 
 from __future__ import annotations
@@ -35,11 +35,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 PACKAGES_DIR = ROOT / "ontology_packages"
 DATASETS_DIR = ROOT / "evaluation" / "datasets"
-RUNS_CSV = ROOT / "results_ablation.csv"
-SUMMARY_CSV = ROOT / "results_ablation_summary.csv"
+RUNS_CSV = ROOT / "output" / "results_ablation.csv"
+SUMMARY_CSV = ROOT / "output" / "results_ablation_summary.csv"
 
 MODEL = "qwen2.5-coder:32b"
 
@@ -290,6 +290,7 @@ def parse_report(results_path: Path) -> dict:
 
 
 def append_row(row: dict) -> None:
+    RUNS_CSV.parent.mkdir(parents=True, exist_ok=True)
     new_file = not RUNS_CSV.exists()
     with RUNS_CSV.open("a", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)

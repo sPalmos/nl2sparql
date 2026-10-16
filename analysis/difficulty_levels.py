@@ -18,11 +18,11 @@ Questions: the scored, non-empty-gold questions of the main-table runs
 (20 ontologies; 1,042 questions), same selection as build_headline_tables.py.
 
 Two modes, run in this order:
-    python difficulty_levels.py                  # counts only, no accuracy
-    python difficulty_levels.py --ea             # after the thresholds are fixed
+    python analysis/difficulty_levels.py                  # counts only, no accuracy
+    python analysis/difficulty_levels.py --ea             # after the thresholds are fixed
 Thresholds:  --simple-p 2 --simple-o 1 --complex-p 5 --complex-o 3  (defaults, fixed 2026-10-08)
 
-Outputs (analysis/)
+Outputs (output/tables/)
     difficulty_profile.csv        every question: P, O, operations, level, old tier
     table_difficulty_levels.csv   (--ea only) pooled lenient EA per level, 6 models
 """
@@ -41,7 +41,7 @@ from rdflib.namespace import RDF
 from rdflib.plugins.sparql.parser import parseQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from build_headline_tables import (EXCLUDED_ONTOLOGIES, MODEL_ORDER,  # noqa: E402
@@ -230,8 +230,8 @@ def main() -> None:
     for row in profile.values():
         row["level"] = level(row["P"], row["O"], args) if row["P"] >= 0 else "unparsed"
 
-    out = ROOT / "analysis"
-    out.mkdir(exist_ok=True)
+    out = ROOT / "output" / "tables"
+    out.mkdir(parents=True, exist_ok=True)
     rows = sorted(profile.values(), key=lambda r: (r["ontology"], r["question_id"]))
     with (out / "difficulty_profile.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
@@ -265,7 +265,7 @@ def main() -> None:
         print(f"  {lv:10s}" + "".join(f"{cross[(lv, t)]:>9d}" for t in tiers))
     for o, q, s in failures[:20]:
         print(f"  ! {o} {q}: {s}")
-    print("\nwrote analysis/difficulty_profile.csv")
+    print("\nwrote output/tables/difficulty_profile.csv")
 
     if not args.ea:
         print("\n(accuracy not computed; rerun with --ea once the thresholds are fixed)")
@@ -298,7 +298,7 @@ def main() -> None:
     print("\nPooled lenient EA per level:")
     for r in table:
         print(f"  {r['value']:8s} {r['questions_scored']:5d}  " + "  ".join(f"{r[f'{m} EA']!s:>5s}" for m in models))
-    print("wrote analysis/table_difficulty_levels.csv")
+    print("wrote output/tables/table_difficulty_levels.csv")
 
 
 if __name__ == "__main__":

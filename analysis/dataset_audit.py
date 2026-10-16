@@ -18,11 +18,11 @@ For each of the 20 reported ontologies (same run selection as the tables):
      - empty-gold questions (stored gold_answers == []) are counted separately
 
 Usage (repo root, nothing else running; it activates each package in turn):
-    python dataset_audit.py
-    python dataset_audit.py --newest-packages --only spider     # re-onboarded Spider packages
-    python dataset_audit.py --skip-gold      # only A and B, no Fuseki needed
+    python analysis/dataset_audit.py
+    python analysis/dataset_audit.py --newest-packages --only spider     # re-onboarded Spider packages
+    python analysis/dataset_audit.py --skip-gold      # only A and B, no Fuseki needed
 
-Writes analysis/table_dataset_audit.csv and analysis/gold_differences.csv
+Writes output/tables/table_dataset_audit.csv and output/tables/gold_differences.csv
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from pathlib import Path
 
 import httpx
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from build_headline_tables import matches_reference, ontology_key  # noqa: E402
@@ -187,8 +187,8 @@ def main() -> None:
                  f"diff={row.get('gold_different')} err={row.get('gold_error')} empty={row.get('gold_empty_gold')}"
                  if not args.skip_gold else ""))
 
-    out = ROOT / "analysis"
-    out.mkdir(exist_ok=True)
+    out = ROOT / "output" / "tables"
+    out.mkdir(parents=True, exist_ok=True)
     fields: list[str] = []
     for r in rows:
         fields += [k for k in r if k not in fields]
@@ -201,7 +201,7 @@ def main() -> None:
         writer = csv.DictWriter(handle, fieldnames=["ontology", "question_id", "kind", "detail"])
         writer.writeheader()
         writer.writerows(differences)
-    print(f"\nwrote analysis/table_dataset_audit{suffix}.csv and analysis/gold_differences{suffix}.csv "
+    print(f"\nwrote output/tables/table_dataset_audit{suffix}.csv and output/tables/gold_differences{suffix}.csv "
           f"({len(differences)} differing or failing gold queries)")
 
 

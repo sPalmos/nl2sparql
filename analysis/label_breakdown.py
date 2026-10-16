@@ -9,8 +9,8 @@ averaged over ontologies), so each value's EA is hits / questions.
 Labels (complexity_tier, query_shape, question_type) are read from the dataset
 files, matched to results by question id.
 
-Usage (repository root):  python label_breakdown.py
-Writes analysis/table_label_breakdown.csv
+Usage (repository root):  python analysis/label_breakdown.py
+Writes output/tables/table_label_breakdown.csv
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from build_headline_tables import (EXCLUDED_ONTOLOGIES, MODEL_ORDER,  # noqa: E402
@@ -121,8 +121,8 @@ def main() -> None:
             row[f"{m} EA"] = round(100.0 * hits[key][m] / n, 1) if n else ""
         rows.append(row)
 
-    out = ROOT / "analysis"
-    out.mkdir(exist_ok=True)
+    out = ROOT / "output" / "tables"
+    out.mkdir(parents=True, exist_ok=True)
     fields = ["label", "value", "questions_scored", "questions_total"] + [f"{m} EA" for m in models] + ["note"]
     with (out / "table_label_breakdown.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -139,7 +139,7 @@ def main() -> None:
     if unmatched:
         print("questions without labels (id not found in the dataset file):",
               dict(unmatched))
-    print("wrote analysis/table_label_breakdown.csv")
+    print("wrote output/tables/table_label_breakdown.csv")
 
 
 if __name__ == "__main__":
