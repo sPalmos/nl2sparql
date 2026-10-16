@@ -145,7 +145,7 @@ scores only (no question text and no gold answers).
 
 ## Citation
 
-TODO: BibTeX entry, once the paper is published.
+Citation details will be added once the paper is published.
 
 ## Licence
 
