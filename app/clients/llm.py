@@ -52,11 +52,7 @@ async def generate_text(prompt: str, *, model: str, llm_api_url: str) -> str:
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": {
-            "temperature": settings.llm_temperature,
-            "num_ctx": settings.llm_num_ctx,
-            "num_predict": settings.llm_num_predict,
-        },
+        "options": _ollama_options(),
     }
 
     async with httpx.AsyncClient(timeout=settings.llm_timeout_seconds) as client:
@@ -64,6 +60,7 @@ async def generate_text(prompt: str, *, model: str, llm_api_url: str) -> str:
         response.raise_for_status()
 
     body = response.json()
+    _log_ollama(model, "generate", payload["options"], body, prompt)
     generated = body.get("response")
     if not isinstance(generated, str):
         raise ValueError("The LLM response is missing generated text")
@@ -93,11 +90,7 @@ async def chat_completion(
         "model": model,
         "messages": messages,
         "stream": False,
-        "options": {
-            "temperature": settings.llm_temperature,
-            "num_ctx": settings.llm_num_ctx,
-            "num_predict": settings.llm_num_predict,
-        },
+        "options": _ollama_options(),
     }
 
     async with httpx.AsyncClient(timeout=settings.llm_timeout_seconds) as client:
@@ -105,6 +98,7 @@ async def chat_completion(
         response.raise_for_status()
 
     body = response.json()
+    _log_ollama(model, "chat", payload["options"], body, _first_user_text(messages))
     message = body.get("message", {})
     content = message.get("content", "")
     if not isinstance(content, str) or not content.strip():
@@ -141,6 +135,10 @@ async def _api_chat(
     payload[os.environ.get("NL2SPARQL_API_MAX_TOKENS_PARAM", "max_tokens")] = settings.llm_num_predict
     if os.environ.get("NL2SPARQL_API_NO_TEMPERATURE", "0") != "1":
         payload["temperature"] = settings.llm_temperature
+    extra_body = os.environ.get("NL2SPARQL_API_EXTRA_BODY")
+    if extra_body:
+        # e.g. '{"reasoning_effort": "low"}' (paper-v1.1; unset = paper-v1 request)
+        payload.update(json.loads(extra_body))
 
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     delay = 2.0
@@ -164,19 +162,108 @@ async def _api_chat(
 
     body = response.json()
     choices = body.get("choices") or []
+    # Logged before the content check (paper-v1.1), so empty or truncated
+    # responses are counted too; finish_reason shows length truncation.
+    _log_usage(api_model, body.get("usage") or {},
+               finish_reason=choices[0].get("finish_reason") if choices else None)
     content = (choices[0].get("message") or {}).get("content", "") if choices else ""
     if not isinstance(content, str) or not content.strip():
         raise ValueError("The API chat response is missing content")
-
-    _log_usage(api_model, body.get("usage") or {})
     return content, messages + [{"role": "assistant", "content": content}]
 
 
-def _log_usage(model: str, usage: dict) -> None:
+def _log_usage(model: str, usage: dict, finish_reason: str | None = None) -> None:
     try:
         path = Path("logs") / "api_usage.jsonl"
         path.parent.mkdir(exist_ok=True)
+        entry = {"t": time.time(), "model": model, **usage}
+        if finish_reason is not None:
+            entry["finish_reason"] = finish_reason
         with path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps({"t": time.time(), "model": model, **usage}) + "\n")
+            handle.write(json.dumps(entry) + "\n")
     except OSError:
+        pass
+
+
+# --------------------------------------------------------------------------
+# paper-v1.1: optional overrides and generation metadata
+# --------------------------------------------------------------------------
+# Environment variables (all optional; unset = the paper-v1 request):
+#   NL2SPARQL_TEMPERATURE   Ollama temperature (default settings.llm_temperature)
+#   NL2SPARQL_TOP_P         Ollama top_p (default: not sent, model default)
+#   NL2SPARQL_NUM_CTX       Ollama num_ctx (default settings.llm_num_ctx)
+#   NL2SPARQL_API_EXTRA_BODY JSON merged into hosted-API requests
+#   NL2SPARQL_LOG_RAW=1     also store the raw model output in the log
+# Every Ollama call appends done_reason, eval_count, prompt_eval_count and
+# durations to logs/ollama_usage.jsonl. Logging never changes a result.
+
+_OVERRIDE_VARS = (
+    "NL2SPARQL_TEMPERATURE",
+    "NL2SPARQL_TOP_P",
+    "NL2SPARQL_NUM_CTX",
+    "NL2SPARQL_API_EXTRA_BODY",
+    "NL2SPARQL_API_NO_TEMPERATURE",
+    "NL2SPARQL_API_MAX_TOKENS_PARAM",
+    "NL2SPARQL_API_BASE",
+)
+
+
+def active_overrides() -> dict[str, str]:
+    """The override variables set for this process (never the API key)."""
+    return {name: os.environ[name] for name in _OVERRIDE_VARS if os.environ.get(name)}
+
+
+def _ollama_options() -> dict[str, object]:
+    options: dict[str, object] = {
+        "temperature": float(os.environ["NL2SPARQL_TEMPERATURE"])
+        if os.environ.get("NL2SPARQL_TEMPERATURE") else settings.llm_temperature,
+        "num_ctx": int(os.environ["NL2SPARQL_NUM_CTX"])
+        if os.environ.get("NL2SPARQL_NUM_CTX") else settings.llm_num_ctx,
+        "num_predict": settings.llm_num_predict,
+    }
+    if os.environ.get("NL2SPARQL_TOP_P"):
+        options["top_p"] = float(os.environ["NL2SPARQL_TOP_P"])
+    return options
+
+
+def _first_user_text(messages: list[dict[str, str]]) -> str:
+    for message in messages:
+        if message.get("role") == "user":
+            return message.get("content", "")
+    return ""
+
+
+def _log_ollama(model: str, endpoint: str, options: dict, body: dict, prompt: str) -> None:
+    try:
+        if endpoint == "chat":
+            message = body.get("message") or {}
+            text = message.get("content") or ""
+            thinking = message.get("thinking") or ""
+        else:
+            text = body.get("response") or ""
+            thinking = body.get("thinking") or ""
+        entry = {
+            "t": time.time(),
+            "model": model,
+            "endpoint": endpoint,
+            "options": options,
+            "done_reason": body.get("done_reason"),
+            "prompt_eval_count": body.get("prompt_eval_count"),
+            "eval_count": body.get("eval_count"),
+            "total_duration": body.get("total_duration"),
+            "load_duration": body.get("load_duration"),
+            "prompt_eval_duration": body.get("prompt_eval_duration"),
+            "eval_duration": body.get("eval_duration"),
+            "response_chars": len(text),
+            "thinking_chars": len(thinking),
+            "prompt_tail": prompt[-300:],
+        }
+        if os.environ.get("NL2SPARQL_LOG_RAW") == "1":
+            entry["response"] = text
+            entry["thinking"] = thinking
+        path = Path("logs") / "ollama_usage.jsonl"
+        path.parent.mkdir(exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
         pass

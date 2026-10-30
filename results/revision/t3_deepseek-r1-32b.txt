@@ -1,0 +1,32 @@
+T3: deepseek-r1:32b, runs with logging (paper settings: T = 0, num_predict 8192, num_ctx 32768)
+
+ontology                               calls len-cut     % noquery     % repeat(cut)    q q-cut q-noSPARQL   EA now/paper changed
+enovation                                 52       0   0.0       0   0.0     0/0       40     0          0   87.5/ 85.0       1
+bestiary                                 203       0   0.0       1   0.5     0/0       92     0          2   26.1/ 26.1       0
+ck25                                      93       0   0.0       0   0.0     0/0       50     0          1   40.0/ 40.0       0
+spider-battle-death                       23       0   0.0       0   0.0     0/0       16     0          1   81.2/ 81.2       0
+spider-car-1                             146       0   0.0       0   0.0     0/0       91     0          1   56.0/ 57.1       1
+spider-concert-singer                     66       0   0.0       0   0.0     0/0       43     0          1   72.1/ 76.7       2
+spider-course-teach                       41       0   0.0       0   0.0     0/0       26     0          1   69.2/ 69.2       2
+spider-cre-doc-template-mgt               93       0   0.0       0   0.0     0/0       72     0          0   81.9/ 77.8       9
+spider-dog-kennels                       124       0   0.0       0   0.0     0/0       80     0          2   68.8/ 65.0      17
+spider-employee-hire-evaluation           61       0   0.0       0   0.0     0/0       36     0          0   75.0/ 80.6       8
+spider-flight-2                           84       0   0.0       0   0.0     0/0       52     0          0   71.2/ 69.2       1
+spider-museum-visit                       32       0   0.0       0   0.0     0/0       15     0          0   60.0/ 60.0       0
+spider-network-1                          78       0   0.0       0   0.0     0/0       52     0          0   51.9/ 51.9       8
+spider-pets-1                             71       0   0.0       0   0.0     0/0       41     0          0   75.6/ 78.0       1
+spider-poker-player                       50       0   0.0       0   0.0     0/0       40     0          0   95.0/ 90.0       4
+spider-real-estate-properties              0       0   0.0       0   0.0     0/0        2     0          0   50.0/ 50.0       0
+spider-singer                             38       0   0.0       0   0.0     0/0       30     0          0   86.7/ 86.7       0
+spider-student-transcripts-tracking      111       0   0.0       0   0.0     0/0       76     0          1   57.9/ 63.2      12
+spider-tvshow                             79       0   0.0       0   0.0     0/0       60     0          0   76.7/ 80.0       2
+spider-voter-1                            17       0   0.0       0   0.0     0/0       14     0          0   64.3/ 64.3       0
+spider-world-1                           200       0   0.0       0   0.0     0/0      116     0          0   50.9/ 50.9       0
+
+TOTAL over 20 reported ontologies (real-estate excluded):
+  calls 1662; cut at the 8,192-token limit 0 (0.0%)
+  calls with no recoverable query 1 (0.1% of 1662 logged outputs)
+  cut calls with signs of repeated text: 0 of 0
+  scored questions 1042; with at least one cut call 0 (0.0%); final query empty 10 (1.0%)
+  macro EA lenient: re-run 67.4, paper run 67.6; questions with a different outcome 68 of 1042 (6.5%)
+  output tokens per call: median 487, 90th pct 777, max 3367

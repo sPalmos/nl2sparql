@@ -1,0 +1,18 @@
+B4a: qwen2.5-coder:32b, T = 0.6 vs the paper's T = 0 run (main-table cell)
+
+ontology                                  n      T=0 L/S     run1 L/S     run2 L/S  changed vs T=0 (run1, run2, either)  run1 vs run2
+bestiary                                 92   28.3/ 22.8   22.8/ 17.4   26.1/ 20.7    7   6   9              5
+ck25                                     50   32.0/ 30.0   26.0/ 24.0   36.0/ 32.0    7   6  10              7
+enovation                                40   75.0/ 75.0   72.5/ 72.5   80.0/ 80.0    3   4   5              3
+spider-dog-kennels                       80   81.2/ 75.0   80.0/ 76.2   76.2/ 68.8    3   6   8              7
+spider-student-transcripts-tracking      76   67.1/ 67.1   67.1/ 67.1   68.4/ 68.4    4   9  10              7
+spider-world-1                          116   71.6/ 70.7   67.2/ 67.2   69.8/ 69.0   15   8  20             17
+
+macro mean over 6 ontologies (lenient / strict): T=0 59.2 / 56.8; run1 55.9 / 54.1; run2 59.4 / 56.5; mean of runs 57.7 / 55.3
+run1 vs T=0 (lenient, pooled 454): correct only at T=0 27, only at T=0.6 12, changed 39 (8.6%), exact McNemar p = 0.0237
+run2 vs T=0 (lenient, pooled 454): correct only at T=0 21, only at T=0.6 18, changed 39 (8.6%), exact McNemar p = 0.749
+questions that changed outcome in at least one run: 62 (13.7%)
+run1 vs run2: 46 questions differ (10.1%)
+mean latency (question-weighted): T=0 9,428 ms, run1 10,334 ms, run2 9,607 ms
+(run1 e.g. bestiary_sandro_eval_dataset-20261021-0714, overrides {'NL2SPARQL_TEMPERATURE': '0.6'})
+(run2 e.g. bestiary_sandro_eval_dataset-20261021-0909, overrides {'NL2SPARQL_TEMPERATURE': '0.6'})

@@ -23,6 +23,8 @@ unchanged for every ontology.
 | `results/tables/` | The paper's tables (CSV) |
 | `results/paper_outcomes.csv` | Every per-question outcome behind the tables (see below) |
 | `results/source_sha256.csv` | SHA-256 of the knowledge-graph sources and converted datasets we used |
+| `results/revision/` | Output of the analyses of the revision experiments (`paper-v2`, see below) |
+| `results/revision_outcomes.csv` | Per-question outcomes of the revision runs, eNOVATION excluded |
 | `infra/docker/compose.yml` | Apache Jena Fuseki |
 | `docs/architecture/` | Design notes |
 
@@ -36,8 +38,9 @@ experiments in `output/`, the regenerated tables in `output/tables/`.
 - Ollama 0.12.3. All models were run as Q4_K_M quantisations with temperature 0 and a
   32,768-token context: qwen2.5-coder:7b, qwen2.5-coder:32b, qwen3:8b, qwen3-coder:30b,
   llama3.1:8b, deepseek-r1:32b. The paper's runs used one NVIDIA L40S (48 GB).
-- Optional, for the API comparison: an OpenAI-compatible endpoint, configured with the
-  environment variables `NL2SPARQL_API_BASE`, `NL2SPARQL_API_KEY` and
+- Optional, for the API comparisons: an OpenAI-compatible endpoint (Google's for Gemini 3.1
+  Flash-Lite; Anthropic's, `https://api.anthropic.com/v1`, for Claude Opus 5.5), configured with
+  the environment variables `NL2SPARQL_API_BASE`, `NL2SPARQL_API_KEY` and
   `NL2SPARQL_API_NO_TEMPERATURE=1`. Never commit a key.
 
 ## Datasets
@@ -145,6 +148,69 @@ scores only (no question text and no gold answers).
 | `first_attempt` | 1 if no correction attempt was needed |
 | `attempts`, `latency_ms` | attempts used and end-to-end latency |
 | `final_sparql` | the query that was executed |
+
+## Revision experiments (`paper-v2`)
+
+Tag `paper-v2` adds the experiments made after the first review of the paper. The paper's
+original runs and tables (`paper-v1`, `results/tables/`, `results/paper_outcomes.csv`) are
+unchanged.
+
+**Code change.** `app/clients/llm.py` and `evaluation/experiment_runner.py` gain optional
+environment variables. With none of them set, every request is identical to `paper-v1`; this was
+checked on spider-singer with qwen2.5-coder:32b, where runs before and after the change agree on
+every question (final query, answers, attempts and scores, `results/revision/neutrality.txt`).
+
+| Variable | Effect |
+|---|---|
+| `NL2SPARQL_TEMPERATURE` | Ollama sampling temperature (default 0) |
+| `NL2SPARQL_TOP_P` | Ollama top-p (default: not sent, so the model's own default applies) |
+| `NL2SPARQL_NUM_CTX` | Ollama context window (default 32,768) |
+| `NL2SPARQL_API_EXTRA_BODY` | JSON merged into API requests |
+| `NL2SPARQL_LOG_RAW=1` | also store each raw model output in the log |
+
+Every Ollama call is logged to `logs/ollama_usage.jsonl` (stop reason, prompt and output token
+counts, durations and the last 300 characters of the prompt), every API call to
+`logs/api_usage.jsonl` (token counts, finish reason); `logs/` is not tracked by Git. The
+variables in effect are recorded in each run's `run_config.json` (`llm_overrides`).
+
+**Experiments.** All use the reference configuration of the paper unless stated. We ran them in a
+separate working copy, because the analysis scripts take the newest run per ontology and model,
+and new runs next to the paper's would replace cells of the paper's tables.
+
+| Experiment | How it was run | Output in `results/revision/` |
+|---|---|---|
+| Frontier commercial model: Claude Opus 5.5 (`claude-opus-5-5`), one run on the 19 public datasets | API variables above; `python scripts/run_model_matrix.py --only <the 19 public datasets> --models api:claude-opus-5-5` | `b1.txt` |
+| Temperature 0.6, qwen2.5-coder:32b, two runs on the ablation ontologies | `NL2SPARQL_TEMPERATURE=0.6`; `python scripts/run_model_matrix.py --only bestiary ck25 spider-dog-kennels spider-student-transcripts-tracking spider-world-1 --models qwen2.5-coder:32b` | `b4a_qwen2.5-coder-32b.txt` |
+| qwen3:8b at its model-card sampling settings (temperature 0.6, top-p 0.95; top-k 20 is the model's default), two runs | `NL2SPARQL_TEMPERATURE=0.6`, `NL2SPARQL_TOP_P=0.95`, `NL2SPARQL_LOG_RAW=1`; same command with `--models qwen3:8b` | `b4a_qwen3-8b.txt`, `t3_qwen3-8b_T0.6.txt` |
+| Output length of the reasoning models: deepseek-r1:32b and qwen3:8b re-run at the paper's settings, with logging | `NL2SPARQL_LOG_RAW=1`; `python scripts/run_model_matrix.py --models deepseek-r1:32b` (and `qwen3:8b`) | `t3_deepseek-r1-32b.txt`, `t3_qwen3-8b.txt` |
+| Questions with an empty gold answer; onboarding time | read from the stored runs and package logs | `t1.txt`, `t4.txt` |
+| Full schema with a 64k context (qwen3-coder:30b); held-out eNOVATION questions | eNOVATION only, so neither the data nor per-question results are public | `b2.txt`, `b5.txt` (aggregates only) |
+
+The temperature runs and the logged re-runs also covered eNOVATION (for the temperature runs,
+the sixth ablation ontology of the paper). Its results appear in `results/revision/` as
+aggregates only; its data, questions and per-question results are not public, and the commands
+above run on the public datasets only.
+
+**Analyses.** From the working copy that holds the revision runs, with `--paper-root` pointing to
+the folder that holds the paper's runs:
+
+```
+python analysis/revision_analyses.py b1 --paper-root <paper folder>
+python analysis/revision_analyses.py b4a --paper-root <paper folder>                               # qwen2.5-coder:32b at T = 0.6
+python analysis/revision_analyses.py b4a --model qwen3:8b --temperature 0.6 --paper-root <paper folder>
+python analysis/revision_analyses.py t3 --model deepseek-r1:32b --paper-root <paper folder>         # also: --model qwen3:8b [--temperature 0.6]
+python analysis/revision_analyses.py t1 --paper-root <paper folder>                                # also: t4, b5
+python analysis/b2_summary.py --paper-root <paper folder>
+python analysis/export_revision_outcomes.py --out results/revision_outcomes.csv
+```
+
+`results/revision_outcomes.csv` has one row per question and run of the revision experiments.
+Its columns are those of `results/paper_outcomes.csv`, except that `roles` is replaced by `role`
+(`frontier`: the Opus run; `frontier_test`: its 30-question test on spider-singer;
+`temperature`: the temperature runs; `rerun_logged`: the logged re-runs at the paper's settings;
+`neutrality`: the check of the code change) and that `llm_overrides` records the variables in
+effect. Like `paper_outcomes.csv`, it holds identifiers, the generated SPARQL and the scores
+only, and eNOVATION is excluded.
 
 ## Citation
 

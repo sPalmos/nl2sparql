@@ -1,0 +1,23 @@
+T4: onboarding time per package, from logs/onboard.log (timestamps have minute resolution)
+
+bestiary-20260923-1041                               2026-09-23 10:41 -> 10:43      2 min  events 9: loading_source ... onboarding_completed
+ck25-20260923-1043                                   2026-09-23 10:43 -> 10:46      3 min  events 9: loading_source ... onboarding_completed
+enovation-20260923-1046                              2026-09-23 10:46 -> 10:47      1 min  events 9: loading_source ... onboarding_completed
+spider-battle-death-20261010-2127                    2026-10-10 21:27 -> 21:27      0 min  events 9: loading_source ... onboarding_completed
+spider-car-1-20261013-1431                           2026-10-13 14:31 -> 14:31      0 min  events 9: loading_source ... onboarding_completed
+spider-concert-singer-20261010-2128                  2026-10-10 21:28 -> 21:28      0 min  events 9: loading_source ... onboarding_completed
+spider-course-teach-20261010-2128                    2026-10-10 21:28 -> 21:28      0 min  events 9: loading_source ... onboarding_completed
+spider-cre-doc-template-mgt-20261010-2128            2026-10-10 21:28 -> 21:28      0 min  events 9: loading_source ... onboarding_completed
+spider-dog-kennels-20261010-2128                     2026-10-10 21:28 -> 21:28      0 min  events 9: loading_source ... onboarding_completed
+spider-employee-hire-evaluation-20261010-2128        2026-10-10 21:28 -> 21:29      1 min  events 9: loading_source ... onboarding_completed
+spider-flight-2-20261010-2129                        2026-10-10 21:29 -> 21:29      0 min  events 9: loading_source ... onboarding_completed
+spider-museum-visit-20261010-2129                    2026-10-10 21:29 -> 21:29      0 min  events 9: loading_source ... onboarding_completed
+spider-network-1-20261010-2129                       2026-10-10 21:29 -> 21:29      0 min  events 9: loading_source ... onboarding_completed
+spider-pets-1-20261010-2130                          2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-poker-player-20261010-2130                    2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-real-estate-properties-20261010-2130          2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-singer-20261010-2130                          2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-student-transcripts-tracking-20261010-2130    2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-tvshow-20261010-2130                          2026-10-10 21:30 -> 21:30      0 min  events 9: loading_source ... onboarding_completed
+spider-voter-1-20261010-2131                         2026-10-10 21:31 -> 21:31      0 min  events 9: loading_source ... onboarding_completed
+spider-world-1-20261010-2131                         2026-10-10 21:31 -> 21:32      1 min  events 9: loading_source ... onboarding_completed

@@ -1,0 +1,9 @@
+B2: qwen3-coder:30b, eNOVATION, full schema (TBox k = 1000), num_ctx 65536, vs the paper's reference run (k = 5, num_ctx 32768)
+
+full schema, 64k     n 40  EA lenient  77.5  strict  77.5  1st attempt  60.0  latency  114.2 s
+reference (paper)    n 40  EA lenient  77.5  strict  75.0  1st attempt  62.5  latency    6.6 s
+lenient: only full schema correct 4, only reference correct 4, exact McNemar p = 1
+strict: only full schema correct 4, only reference correct 3, exact McNemar p = 1
+
+Ollama log: 59 calls; prompt_eval_count min 54913, median 56545, max 57847; >= 65000: 0; done_reason {'stop': 59}
+attempts recorded in the run: 59

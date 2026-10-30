@@ -1,0 +1,42 @@
+B5: held-out eNOVATION set (40 questions) vs the original 40 questions (paper's main-table runs)
+EA in %, empty-gold excluded; 95% CI = bootstrap over questions (10,000 resamples, seed 0);
+reweighted = held-out EA per level, weighted by the original set's level mix
+
+level mix: original {'complex': 13, 'medium': 20, 'simple': 7}, held-out {'complex': 13, 'medium': 15, 'simple': 12}
+
+qwen2.5-coder:7b
+   held-out: EA lenient  55.0 [40.0, 70.0]  strict  52.5  reweighted  52.5  by level S/M/C 66.7 / 46.7 / 53.8
+   original: EA lenient  57.5  strict  55.0
+   held-out minus original (lenient): -2.5 pp, 95% CI [-25.0, +20.0]
+   held-out failures by outcome: E1 invalid query 1, E2 endpoint error 2, E3 empty result 11, E4 wrong rows 2, E6 too many rows 2
+   mean latency 3,719 ms; run eNOVATION_heldout_dataset-20261029-1039
+qwen2.5-coder:32b
+   held-out: EA lenient  72.5 [57.5, 85.0]  strict  72.5  reweighted  67.5  by level S/M/C 100.0 / 60.0 / 61.5
+   original: EA lenient  75.0  strict  75.0
+   held-out minus original (lenient): -2.5 pp, 95% CI [-22.5, +17.5]
+   held-out failures by outcome: E1 invalid query 1, E3 empty result 7, E4 wrong rows 2, E6 too many rows 1
+   mean latency 12,808 ms; run eNOVATION_heldout_dataset-20261029-1041
+qwen3:8b
+   held-out: EA lenient  62.5 [47.5, 77.5]  strict  62.5  reweighted  59.0  by level S/M/C 75.0 / 46.7 / 69.2
+   original: EA lenient  60.0  strict  60.0
+   held-out minus original (lenient): +2.5 pp, 95% CI [-17.5, +22.5]
+   held-out failures by outcome: E1 invalid query 5, E2 endpoint error 3, E3 empty result 5, E4 wrong rows 1, E7 partial overlap 1
+   mean latency 34,453 ms; run eNOVATION_heldout_dataset-20261029-1119
+qwen3-coder:30b
+   held-out: EA lenient  65.0 [50.0, 80.0]  strict  65.0  reweighted  59.4  by level S/M/C 91.7 / 46.7 / 61.5
+   original: EA lenient  77.5  strict  75.0
+   held-out minus original (lenient): -12.5 pp, 95% CI [-32.5, +7.5]
+   held-out failures by outcome: E2 endpoint error 1, E3 empty result 7, E4 wrong rows 2, E5 too few rows 1, E6 too many rows 3
+   mean latency 7,089 ms; run eNOVATION_heldout_dataset-20261029-1142
+llama3.1:8b
+   held-out: EA lenient  35.0 [20.0, 50.0]  strict  35.0  reweighted  28.3  by level S/M/C 66.7 / 13.3 / 30.8
+   original: EA lenient  32.5  strict  32.5
+   held-out minus original (lenient): +2.5 pp, 95% CI [-17.5, +22.5]
+   held-out failures by outcome: E1 invalid query 5, E2 endpoint error 1, E3 empty result 9, E4 wrong rows 3, E5 too few rows 2, E6 too many rows 6
+   mean latency 4,971 ms; run eNOVATION_heldout_dataset-20261029-1050
+deepseek-r1:32b
+   held-out: EA lenient  67.5 [52.5, 82.5]  strict  65.0  reweighted  62.9  by level S/M/C 83.3 / 46.7 / 76.9
+   original: EA lenient  85.0  strict  80.0
+   held-out minus original (lenient): -17.5 pp, 95% CI [-35.0, +0.0]
+   held-out failures by outcome: E1 invalid query 2, E2 endpoint error 2, E3 empty result 4, E4 wrong rows 2, E6 too many rows 2, E7 partial overlap 1
+   mean latency 38,858 ms; run eNOVATION_heldout_dataset-20261029-1053

@@ -1,0 +1,4 @@
+paper-v1 vs paper-v1.1, same day (2026-10-20): 
+questions A 30, B 30, common 30, identical 30, different 0
+paper-v1.1 vs the paper's run (2026-10-11): 
+questions A 30, B 30, common 30, identical 30, different 0

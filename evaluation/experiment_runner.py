@@ -36,6 +36,7 @@ from app.domain.package import (
 )
 from app.domain.runtime import run_query_pipeline
 from app.domain.runtime.query_trace import read_last_query_trace
+from app.clients.llm import active_overrides
 
 from .answer_comparison import ComparisonResult, compare_results
 from .dataset_schema import EvaluationDataset, ExperimentRun, IterationLog, QuestionResult
@@ -701,7 +702,7 @@ def _model_dict(model) -> dict[str, object]:
 
 
 def _run_config_payload(experiment: ExperimentRun) -> dict[str, object]:
-    return {
+    payload: dict[str, object] = {
         "experiment_id": experiment.experiment_id,
         "dataset_name": experiment.dataset_name,
         "package_dir": experiment.package_dir,
@@ -709,6 +710,11 @@ def _run_config_payload(experiment: ExperimentRun) -> dict[str, object]:
         "timestamp": experiment.timestamp,
         "pipeline_config": experiment.pipeline_config,
     }
+    # paper-v1.1: record any LLM overrides (absent when none is set).
+    overrides = active_overrides()
+    if overrides:
+        payload["llm_overrides"] = overrides
+    return payload
 
 
 def _safe_filename(value: str) -> str:

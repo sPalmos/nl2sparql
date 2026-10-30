@@ -1,0 +1,21 @@
+T1: questions with an empty gold answer (excluded from scoring), main-table runs
+
+model                        questions | final empty (correct) | final non-empty | no answer (failed) | first attempt empty | empty-result correction triggered | first attempt empty -> final non-empty
+qwen2.5-coder:7b             24 | 11 | 5 | 8 | 9 | 11 | 0
+qwen2.5-coder:32b            24 | 11 | 11 | 2 | 12 | 13 | 2
+qwen3:8b                     24 | 7 | 8 | 9 | 5 | 6 | 0
+qwen3-coder:30b              24 | 13 | 10 | 1 | 16 | 16 | 3
+llama3.1:8b                  24 | 10 | 10 | 4 | 10 | 11 | 2
+deepseek-r1:32b              24 | 11 | 10 | 3 | 11 | 14 | 3
+Gemini run 1                 24 | 9 | 12 | 3 | 12 | 12 | 3
+Gemini run 2                 24 | 10 | 12 | 2 | 12 | 12 | 2
+
+empty-gold questions per ontology: {'spider-concert-singer': 2, 'spider-course-teach': 4, 'spider-dog-kennels': 2, 'spider-employee-hire-evaluation': 2, 'spider-flight-2': 2, 'spider-museum-visit': 3, 'spider-network-1': 2, 'spider-pets-1': 1, 'spider-tvshow': 2, 'spider-world-1': 4}
+
+scored questions: correction triggered by an empty result, and outcome (lenient)
+  qwen2.5-coder:7b             triggered 306, ended correct 20
+  qwen2.5-coder:32b            triggered 130, ended correct 41
+  qwen3:8b                     triggered 100, ended correct 32
+  qwen3-coder:30b              triggered 142, ended correct 34
+  llama3.1:8b                  triggered 376, ended correct 61
+  deepseek-r1:32b              triggered 130, ended correct 37

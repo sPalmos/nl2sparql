@@ -1,0 +1,45 @@
+B1: Claude Opus 5.5 (api:claude-opus-5-5), one run, vs qwen2.5-coder:32b (main-table runs) and Gemini 3.1 Flash-Lite (paper runs)
+ontologies: 19
+
+system                               EA-L   EA-S  pool-L  pool-S     F1 1st-att   gain    lat ms
+Claude Opus 5.5                      84.6   81.7    83.4    79.8  0.863    79.9    4.7     4,393
+qwen2.5-coder:32b (same ontologies)   76.8   73.7    72.6    69.3  0.795    71.1    5.7     6,930
+Gemini 3.1 Flash-Lite run 1          74.2   72.2    71.1    69.3  0.769    68.0    6.2     2,210
+Gemini 3.1 Flash-Lite run 2          74.3   72.2    71.2    69.3  0.770    67.5    6.8     2,086
+(pooled over 1002 questions)
+
+paired tests (macro delta, 95% stratified bootstrap CI; McNemar exact on pooled questions):
+  Opus - qwen2.5-coder:32b [lenient]: +7.8 pp [+5.2, +10.3]; only Opus 167, only qwen 58; p = 2.01e-13
+  Opus - Gemini run 1 [lenient]: +10.4 pp [+8.0, +12.8]; only Opus 148, only Gemini 24; p = 5.35e-23
+  Opus - Gemini run 2 [lenient]: +10.3 pp [+8.0, +12.6]; only Opus 148, only Gemini 25; p = 1.87e-22
+  Opus - qwen2.5-coder:32b [strict]: +8.0 pp [+5.4, +10.7]; only Opus 162, only qwen 56; p = 3.9e-13
+  Opus - Gemini run 1 [strict]: +9.5 pp [+7.2, +12.0]; only Opus 131, only Gemini 25; p = 1.53e-18
+  Opus - Gemini run 2 [strict]: +9.5 pp [+7.2, +11.9]; only Opus 132, only Gemini 26; p = 2.79e-18
+
+per-ontology EA lenient (Opus / qwen2.5-coder:32b / Gemini mean of 2):
+  bestiary                               n   92   82.6 /  28.3 /  41.8
+  ck25                                   n   50   74.0 /  32.0 /  26.0
+  spider-battle-death                    n   16   93.8 /  87.5 /  84.4
+  spider-car-1                           n   91   83.5 /  61.5 /  68.1
+  spider-concert-singer                  n   43   81.4 /  79.1 /  77.9
+  spider-course-teach                    n   26   88.5 /  80.8 /  73.1
+  spider-cre-doc-template-mgt            n   72   80.6 /  88.9 /  88.2
+  spider-dog-kennels                     n   80   83.8 /  81.2 /  72.5
+  spider-employee-hire-evaluation        n   36   83.3 /  91.7 /  86.1
+  spider-flight-2                        n   52   78.8 /  90.4 /  80.8
+  spider-museum-visit                    n   15   80.0 /  80.0 /  73.3
+  spider-network-1                       n   52   84.6 /  73.1 /  71.2
+  spider-pets-1                          n   41   97.6 /  87.8 /  91.5
+  spider-poker-player                    n   40   95.0 / 100.0 /  98.8
+  spider-singer                          n   30   93.3 /  93.3 /  91.7
+  spider-student-transcripts-tracking    n   76   72.4 /  67.1 /  63.8
+  spider-tvshow                          n   60   95.0 /  86.7 /  90.0
+  spider-voter-1                         n   14   78.6 /  78.6 /  67.9
+  spider-world-1                         n  116   80.2 /  71.6 /  63.8
+
+Spider pooled EA (860 questions, 17 datasets): Opus 84.1, qwen 79.7, Gemini 76.7 / 77.0
+bestiary EA: Opus 82.6, qwen 28.3, Gemini 42.4 / 41.3
+
+Opus failures 166: E1 invalid query 0.6%, E3 empty result 0.6%, E4 wrong rows 76.5%, E5 too few rows 10.2%, E6 too many rows 9.0%, E7 partial overlap 3.0%
+
+usage (full run): 1157 calls, 5.35 M input, 0.305 M output tokens; at $4.0/$20.0 per M: $27.50; finish_reason {'stop': 1157}
